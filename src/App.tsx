@@ -1,50 +1,53 @@
 import { useEffect, useState } from 'react';
 import { ReactECharts } from './Echarts/ReactECharts';
-import { ChoiceGroupExample, Item, items } from './Components/ChoiceGroup';
+import { ChoiceGroupExample } from './Components/ChoiceGroup';
 import axios from 'axios';
+
+export type StateInterface = {
+  currencySymbol:string,
+  title:string,
+};
+
+type ChartDataObject = {
+  date: string,
+  month: string,
+  indicator: string,
+  value: number,
+}
 
 let typeButton:string;
 
-const symbolAndNameOfCurrency = {
-  '$': 'доллара',
-  '€': 'евро',
-  '¥': 'юаня',
-}
-
-const filteredData = (array:any) => array.filter((item:any) => item.indicator === `Курс ${typeButton}`)
-const averageValue = (func:any, item:any) => (func(item).map((e:any) => e.value).reduce((accumulator:number, currentValue:number) => accumulator + currentValue) / func.length).toFixed(1)
+const initialState = {currencySymbol:'$', title:'Курс доллара'}
 
 function App() {
+  const [stateInterface, setStateInterface] = useState<StateInterface>(initialState);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  const [chartData, setChartData] = useState<ChartDataObject[]>([])
 
-  const [buttonValue, setButtonValue] = useState<Item>(items[0]);
-  const [loading, setLoading] = useState<Boolean>(true);
-  const [error, setError] = useState<Boolean>(false);
-  const [chart, setChart] = useState([{ date: '2016-02-01', month: 'фев 2016', indicator: 'Курс доллара', value: 72 }])
+  const filteredData = chartData.filter((item) => item.indicator === typeButton)
+  // const averageValue = (filteredData.map((e) => e.value).reduce((accumulator:number, currentValue:number) => accumulator + currentValue) / filteredData.length).toFixed(1)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get('ttps://65d4f6c33f1ab8c634365b66.mockapi.io/api/moki/currency/dataOfCurrency')
-        setChart(response.data)
-        setLoading(false)
+        setChartData(response.data)
+        setIsLoading(false)
       } catch (error) {
-        setError(true)
+        setIsError(true)
       }
     }
     fetchData()
-  }, [buttonValue])
+  }, [])
 
-  if(buttonValue === '$') typeButton = symbolAndNameOfCurrency['$']
-  if(buttonValue === '€') typeButton = symbolAndNameOfCurrency['€']
-  if(buttonValue === '¥') typeButton = symbolAndNameOfCurrency['¥']
-
-  const indicator = filteredData(chart).map((e:any) => e.indicator)
-  const value = filteredData(chart).map((e:any) => e.value)
-  const data = filteredData(chart).map((e:any) => e.month)
+  const indicator = filteredData.map((e) => e.indicator)
+  const value = filteredData.map((e) => e.value)
+  const data = filteredData.map((e) => e.month)
 
   const option = {
     title: {
-      text: `${indicator[0]}, ${buttonValue}/₽`
+      text: `${stateInterface.title}, ${stateInterface.currencySymbol}/₽`
     },
     tooltip: {
       trigger: 'axis'
@@ -78,15 +81,15 @@ function App() {
 
   return (
     <div style={{display: 'flex', justifyContent: 'center'}}>
-      { error ? <h2>Что-то пошло не так...</h2> : null }
-      { error === false && loading ? <h2>Loading...</h2>
+      { isError ? <h2>Что-то пошло не так...</h2> : null }
+      { isLoading ? <h2>Loading...</h2>
         : <>
             <ReactECharts style={{width:'100vw', height: '100vh'}} option={option}/>
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
               <p>Среднее за период</p>
-              <p>{averageValue(filteredData, chart)}</p>
+              {/* <p>{averageValue}</p> */}
             </div>
-            <ChoiceGroupExample buttonValue={buttonValue} setButtonValue={setButtonValue} />
+            <ChoiceGroupExample setStateInterface={setStateInterface} />
           </>
       }
     </div>
