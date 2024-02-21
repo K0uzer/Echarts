@@ -1,29 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ReactECharts } from './Echarts/ReactECharts';
-import { mockData } from './data/data';
-import { ChoiceGroupExample } from './Components/ChoiceGroup';
+import { ChoiceGroupExample, Item, items } from './Components/ChoiceGroup';
+import axios from 'axios';
 
-const dollar = mockData.filter((item) => item.indicator === `Курс {1}`)
-fetch('https://65d4f6c33f1ab8c634365b66.mockapi.io/api/moki/currency/dataOfCurrency').then((response) => response.json)
+let typeButton:string;
+
+const symbolAndNameOfCurrency = {
+  '$': 'доллара',
+  '€': 'евро',
+  '¥': 'юаня',
+}
+
+const filteredData = (array:any) => array.filter((item:any) => item.indicator === `Курс ${typeButton}`)
+const averageValue = (func:any, item:any) => (func(item).map((e:any) => e.value).reduce((accumulator:number, currentValue:number) => accumulator + currentValue) / func.length).toFixed(1)
 
 function App() {
-  const [chart, setChart] = useState(dollar)
 
-  const indicator = chart.map((e) => e.indicator)
-  const value = chart.map((e) => e.value)
-  const data = chart.map((e) => e.month)
+  const [buttonValue, setButtonValue] = useState<Item>(items[0]);
+  const [loading, setLoading] = useState<Boolean>(true);
+  const [error, setError] = useState<Boolean>(false);
+  const [chart, setChart] = useState([{ date: '2016-02-01', month: 'фев 2016', indicator: 'Курс доллара', value: 72 }])
 
-  // const averageValue = (chart.map((e) => e.value).reduce((accumulator, currentValue) => accumulator + currentValue) / chart.length).toFixed(1)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('ttps://65d4f6c33f1ab8c634365b66.mockapi.io/api/moki/currency/dataOfCurrency')
+        setChart(response.data)
+        setLoading(false)
+      } catch (error) {
+        setError(true)
+      }
+    }
+    fetchData()
+  }, [buttonValue])
 
-  const changeChart = (index:number) => {
-    if(index === 0) setChart(dollar)
-  }
+  if(buttonValue === '$') typeButton = symbolAndNameOfCurrency['$']
+  if(buttonValue === '€') typeButton = symbolAndNameOfCurrency['€']
+  if(buttonValue === '¥') typeButton = symbolAndNameOfCurrency['¥']
 
-  const currencySign = 1
+  const indicator = filteredData(chart).map((e:any) => e.indicator)
+  const value = filteredData(chart).map((e:any) => e.value)
+  const data = filteredData(chart).map((e:any) => e.month)
 
   const option = {
     title: {
-      text: `${indicator[0]}, ${currencySign}/₽`
+      text: `${indicator[0]}, ${buttonValue}/₽`
     },
     tooltip: {
       trigger: 'axis'
@@ -56,13 +77,18 @@ function App() {
   };
 
   return (
-    <div style={{display: 'flex'}}>
-      <ReactECharts style={{width:'100vw', height: '100vh'}} option={option}/>
-      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-        <p>Среднее за период</p>
-        <p>{}</p>
-      </div>
-      <ChoiceGroupExample />
+    <div style={{display: 'flex', justifyContent: 'center'}}>
+      { error ? <h2>Что-то пошло не так...</h2> : null }
+      { error === false && loading ? <h2>Loading...</h2>
+        : <>
+            <ReactECharts style={{width:'100vw', height: '100vh'}} option={option}/>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+              <p>Среднее за период</p>
+              <p>{averageValue(filteredData, chart)}</p>
+            </div>
+            <ChoiceGroupExample buttonValue={buttonValue} setButtonValue={setButtonValue} />
+          </>
+      }
     </div>
     );
 }

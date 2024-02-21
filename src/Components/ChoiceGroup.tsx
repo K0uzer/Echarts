@@ -1,18 +1,17 @@
-import { useState } from "react";
 import { ChoiceGroup } from '@consta/uikit/ChoiceGroup';
 import { Theme, presetGpnDefault } from "@consta/uikit/Theme";
 
-type Item = string;
+export type Item = string;
 
-const items: Item[] = ['$', '€', '¥'];
+export const items: Item[] = ['$', '€', '¥'];
 
-export const ChoiceGroupExample = () => {
-  const [value, setValue] = useState<Item>(items[0]);
+export const ChoiceGroupExample = ({buttonValue, setButtonValue}:{buttonValue:string, setButtonValue:any}) => {
+
   return (
     <Theme className="App" preset={presetGpnDefault}>
       <ChoiceGroup
-        value={value}
-        onChange={() => setValue(value)}
+        value={buttonValue}
+        onChange={(e) => setButtonValue(e.value)}
         items={items}
         getItemLabel={(item: any) => item}
         multiple={false}
