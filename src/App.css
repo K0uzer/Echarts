@@ -1,0 +1,56 @@
+#id {
+    width: 1200px;
+    height: 400px;
+    background-color: #ffffff;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+.error {
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 72px;
+}
+
+.load {
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 72px;
+}
+
+.average {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-weight: 400;
+}
+
+.average_text {
+    font-size: 16px;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+    color: #667985;
+}
+
+.average_value {
+    display: flex;
+    align-items: last baseline;
+    font-size: 48px;
+    line-height: 72px;
+    align-self: center;
+    margin: 0;
+    padding: 0;
+    color: #F38B00;
+}
+
+.average_symbol {
+    font-size: 16px;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+    color: #667985;
+}
